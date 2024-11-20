@@ -1,0 +1,42 @@
+PWNRSYNC(1)                User Commands               PWNRSYNC(1)
+
+NAME
+       pwnsync:  Sync files or directories wit a remot server
+
+SYNOPSIS
+       ./pwnsync [OPTIONS] -src SOURCE -dst DESTINATION
+
+DESCRIPTION
+       Synchronizes local files or directories to a remote destination
+       using rsync over SSH.
+
+OPTIONS
+       -src PATH
+              Specifies the source file or directory to sync.
+
+       -dst PATH
+              Specifi the destination path on the server.
+
+       -h, --help
+              Displays this help message.
+       --deamon enable automatic sync
+       --bg put the Deamon in background
+       --deploy Not avalable but coming soon
+       --stop Not availabe bti coming soon
+EXAMPLEs
+       Sync a local directory to a remote server:
+              ./pwnsync --src ./local_dir --dst /remote/path
+
+       Display help information:
+              ./pwnsync --help
+
+NOTES
+       Ensure that SSHh access to the remote server is config
+       with an appropriate key
+
+AUTHOR
+       Created by INSEC.
+
+COPYRIGHT
+       © 2024 INSEC. All rights reserved.
+

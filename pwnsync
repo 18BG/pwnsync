@@ -1,0 +1,89 @@
+#!/bin/zsh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
+
+
+usage(){
+	echo "${BOLD}Usage:${RESET} pwnsync [OPTIONS]"
+	echo "\nSynchronize files between a local dir and server."
+	echo -e "\n${GREEN}Options:${RESET}"
+	echo "\n	  -src <path> Path to th local resource"
+	echo "\n	  -dst <path> Path to the destination on the server"
+	echo "\n	  --deploy Sync files from local to remote"
+	echo "\n	  --daemon Enable automatic sync monitoring"
+	echo "\n	  --help or -h Display this help and exit\n"
+	exit 1
+}
+
+
+sync_files(){
+	local SRC="$1"
+	local DST="$2"
+
+	echo -e "${GREEN}[INFO]${RESET} Connecting to the server pwn.college"
+	sleep 2
+	echo -e "${GREEN}[INFO]${RESET} Syncing files from $SRC to $DST"
+	#rsync -a -e "ssh -i /Users/babrygalledou/key" "$SRC" "hacker@pwn.college:$DST"
+	rsync -a "$SRC" "hacker@pwn.college:$DST"
+if [[ $? -eq 0 ]]; then
+	echo -e "${GREEN}[SUCCESS]${RESET} Sync complted sucesfuly."
+else
+	echo -e "${RED}[ERROR]${RESET} Sync faile. Check your paths or ssh configuration with the remote server"
+	exit 1
+fi
+}
+
+monitor_sync(){
+	local SRC="$SRC"
+	local DST="$DST"
+	echo -e "[INFO] Sncing change"
+	while true; do
+	  inotifywait -r -e modify,create "$SRC" >/dev/null 2>&1
+          sync_files "$SRC" "$DST"
+	done
+}
+SRC=""
+DST=""
+DAEMON=false
+bg=false
+while [[ "$#" -gt 0 ]]; do
+	case "$1" in
+	     -src)
+		SRC="$2"
+		shift 2
+	    ;;
+	    -dst)
+		DST="$2"
+		shift 2;;
+	   --daemon)
+		DAEMON=true
+		shift;;
+	  --bg)
+		bg=true
+		shift;;
+	   -h|--help)
+		usage;;
+	    *)
+		echo "Args required"
+		usage;;
+	esac
+done
+if [[ -z "$SRC" || -z "$DST" ]]; then
+	echo "${RED}Erreur:${RESET} args --src and --dst are required."
+	usage
+	fi
+if [ "$DAEMON" = true ]; then
+	if [ "$bg" = true ]; then
+		echo -e "${YELLOW}[INFO]${RESET} Running in background..."
+		monitor_sync "$SRC" "$DST" &
+		echo -e "${GREEN}[INFO]${RESET} Demon started in bg with pid $!."
+	else
+		monitor_sync "$SRC" "$DST"
+	fi
+else
+	sync_files "$SRC" "$DST"
+fi
